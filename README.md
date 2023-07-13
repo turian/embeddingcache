@@ -13,13 +13,11 @@ Retrieve text embeddings, but cache them locally if we have already computed the
 
 </div>
 
-<br>
-
 ## Motivation
 
-The use-case is if you are doing a handful of different NLP tasks
-(or a single NLP pipeline you keep tuning) but don't want to recompute
-embeddings.
+If you are doing a handful of different NLP tasks, or have a single
+NLP pipeline you keep tuning, you probably don't want to recompute
+embeddings. Hence, we cache them.
 
 ## Quickstart
 
