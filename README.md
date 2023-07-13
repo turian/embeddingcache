@@ -2,12 +2,12 @@
 
 # embeddingcache
 
-[![PyPI](https://img.shields.io/pypi/v/:embeddingcache)(https://pypi.org/project/embeddingcache/)]
-[![python](https://img.shields.io/badge/-Python_3.7_3.8_%7C_3.9_%7C_3.10%7C_3.11-blue?logo=python&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![black](https://img.shields.io/badge/Code%20Style-Black-black.svg?labelColor=gray)](https://black.readthedocs.io/en/stable/)
-[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/) <br>
-[![tests](https://github.com/turian/embeddingcache/actions/workflows/test.yml/badge.svg)](https://github.com/turian/embeddingcache/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/embeddingcache)](https://pypi.org/project/embeddingcache/)
 [![license](https://img.shields.io/badge/License-Apache--2.0-green.svg?labelColor=gray)](https://github.com/turian/embeddingcache#license)
+[![python](https://img.shields.io/badge/-Python_3.7_%7C_3.8_%7C_3.9_%7C_3.10%7C_3.11-blue?logo=python&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![black](https://img.shields.io/badge/Code%20Style-Black-black.svg?labelColor=gray)](https://black.readthedocs.io/en/stable/)
+[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![tests](https://github.com/turian/embeddingcache/actions/workflows/test.yml/badge.svg)](https://github.com/turian/embeddingcache/actions/workflows/test.yml)
 
 Retrieve text embeddings, but cache them locally if we have already computed them.
 
