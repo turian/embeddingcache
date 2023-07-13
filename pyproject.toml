@@ -80,8 +80,6 @@ classifiers = [  # Optional
   # Indicate who your project is intended for
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "Intended Audience :: Artificial Intelligence Researchers",
-  "Intended Audience :: Natural Language Processing Researchers",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 
   # Pick your license as you wish
