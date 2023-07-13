@@ -142,8 +142,24 @@ def cache_hashid_to_strs(
 
 
 def get_db_filename(db_directory: Path, db_filename: str = "hashstring.sqlite") -> Path:
-    """ """
-    # Create db_directory if it doesn't exist
+    """
+    Get the full path to the database file.
+
+    Create the directory if it doesn't exist.
+
+    Parameters
+    ----------
+    db_directory : Path
+        Directory where the database is stored.
+    db_filename : str
+        Name of the database file.
+        Default: "hashstring.sqlite"
+
+    Returns
+    -------
+    Path
+        Full path to the database file.
+    """
     db_directory.mkdir(parents=True, exist_ok=True)
     return db_directory / db_filename
 
