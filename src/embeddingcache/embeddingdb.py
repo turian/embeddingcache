@@ -9,8 +9,7 @@ from typing import List
 import numpy as np
 from slugify import slugify
 from sqlalchemy import Column, LargeBinary, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from tqdm.auto import tqdm
 
 import embeddingcache.computeembeddings as computeembeddings
