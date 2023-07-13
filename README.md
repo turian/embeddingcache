@@ -1,27 +1,47 @@
+<div align="center">
+
 # embeddingcache
 
-Retrieve embeddings, but cache them locally if we have already computed them.
+[![PyPI](https://img.shields.io/pypi/v/embeddingcache)](https://pypi.org/project/embeddingcache/)
+[![license](https://img.shields.io/badge/License-Apache--2.0-green.svg?labelColor=gray)](https://github.com/turian/embeddingcache#license)
+[![python](https://img.shields.io/badge/-Python_3.7_%7C_3.8_%7C_3.9_%7C_3.10%7C_3.11-blue?logo=python&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![black](https://img.shields.io/badge/Code%20Style-Black-black.svg?labelColor=gray)](https://black.readthedocs.io/en/stable/)
+[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![tests](https://github.com/turian/embeddingcache/actions/workflows/test.yml/badge.svg)](https://github.com/turian/embeddingcache/actions/workflows/test.yml)
 
-The use-case is if you are doing a handful of different NLP tasks
-(or a single NLP pipeline you keep tuning) but don't want to recompute
-embeddings.
+Retrieve text embeddings, but cache them locally if we have already computed them.
+
+</div>
+
+## Motivation
+
+If you are doing a handful of different NLP tasks, or have a single
+NLP pipeline you keep tuning, you probably don't want to recompute
+embeddings. Hence, we cache them.
+
+## Quickstart
+
+```
+pip install embeddingcache
+```
+
+```
+from embeddingcache.embeddingcache import get_embeddings
+embeddings = get_embeddings(
+            strs=["hi", "I love Berlin."],
+            embedding_model="all-MiniLM-L6-v2",
+            db_directory=Path("dbs/"),
+            verbose=True,
+        )
+```
+
+## Design assumptions
 
 We use SQLite3 to cache embeddings. [This could be adapted easily,
 since we use SQLAlchemy.]
 
-## Spec
-
-We use SQLite3 to cache embeddings. However, SQLAlchemy is used so
-that the backend is portable to other to other backend DBs, possibly
-even cloud DBs.
-
 We assume read-heavy loads, with one concurrent writer. (However,
 we retry on write failures.)
-
-embeddingcache.py:
-
-
-dbcache.py:
 
 We shard SQLite3 into two databases:
 hashstring.db: hashstring table. Each row is a (unique, primary
@@ -78,3 +98,5 @@ from scratch every time.
 * Allow fast_sentence_transformers
 * Test that things work if there are duplicate strings
 * Remove DBs after test
+* Do we have to have nested embedding.embedding for all calls?
+* codecov and code quality shields

@@ -1,5 +1,8 @@
 """
-WRITEME
+Database for storing embeddings.
+
+TODO: Consider converting this to a class?
+TODO: Some of this code is reused with hashstringdb.py, consider refactoring.
 """
 
 
@@ -49,6 +52,26 @@ def get_embeddings(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> np.ndarray:
+    """ "
+    Get embeddings for a list of strings.
+    Also, cache the embeddings in the database.
+
+    Parameters
+    ----------
+    strs : List[str]
+        List of strings to get embeddings for.
+    embedding_model : str
+        Name of the embedding model to use.
+    db_directory : Path
+        Directory where the database is stored.
+    verbose : bool
+        Whether to print progress bars.
+
+    Returns
+    -------
+    np.ndarray
+        Embeddings for the list of strings.
+    """
     # Make sure all hashids are in the hashstring database
     hashids = hashstringdb.get_hashids(strs, db_directory=db_directory, verbose=verbose)
     embeddings = get_embeddings_with_caching(
@@ -70,6 +93,30 @@ def get_embeddings_with_caching(
     verbose: bool = False,
     batch_size: int = 1024,
 ) -> np.ndarray:
+    """ "
+    Get embeddings for a list of strings with their hashids.
+    Also, cache the embeddings in the database.
+
+    Parameters
+    ----------
+    strs : List[str]
+        List of strings to get embeddings for.
+    hashids : List[bytes]
+        List of hashids for the strings.
+    embedding_model : str
+        Name of the embedding model to use.
+    db_directory : Path
+        Directory where the database is stored.
+    verbose : bool
+        Whether to print progress bars.
+    batch_size : int
+        Batch size for computing embeddings and storing in the database.
+
+    Returns
+    -------
+    np.ndarray
+        Embeddings for the list of strings.
+    """
     db_filepath = get_db_filename(
         db_directory=db_directory, db_basefilename=f"embedding_{embedding_model}"
     )
@@ -175,8 +222,15 @@ def get_db_filename(db_directory: Path, db_basefilename: str) -> Path:
 
 
 def create_db_if_not_exists(db_filepath: Path) -> None:
-    """ """
-    # Create DB + table if it doesn't exist
+    """
+    Create the database if it doesn't exist.
+    Also, create the tables if they don't exist.
+
+    Parameters
+    ----------
+    db_filepath : Path
+        Path to the database file.
+    """
     if not db_filepath.exists():
         engine = create_engine(f"sqlite:///{db_filepath}")
         Base.metadata.create_all(bind=engine)
