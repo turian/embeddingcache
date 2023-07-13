@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 import hashstringdb
+import numpy as np
 from sqlalchemy import Column, LargeBinary, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -20,7 +21,7 @@ class Embedding(Base):
     __tablename__ = "embedding"
 
     hashid = Column(String(128), primary_key=True)
-    numpy_vector = Column(LargeBinary)
+    embedding = Column(LargeBinary)
 
 
 """
@@ -46,10 +47,11 @@ def get_embeddings(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> np.ndarray:
-    embeddings = get_embeddings_from_hashids(
-        hashids=hashstringdb.get_hashids(
-            strs, db_directory=db_directory, verbose=verbose
-        ),
+    # Make sure all hashids are in the hashstring database
+    hashids = hashstringdb.get_hashids(strs, db_directory=db_directory, verbose=verbose)
+    embeddings = get_embeddings_with_caching(
+        strs=strs,
+        hashids=hashids,
         embedding_model=embedding_model,
         db_directory=db_directory,
         verbose=verbose,
@@ -58,22 +60,8 @@ def get_embeddings(
     return embeddings
 
 
-def get_embeddings_from_hashids(
-    hashids: List[bytes],
-    embedding_model: str,
-    db_directory: Path = Path("."),
-    verbose: bool = False,
-) -> np.ndarray:
-    return get_embeddings_with_caching(
-        hashids=hashids,
-        embedding_model=embedding_model,
-        db_directory=db_directory,
-        verbose=verbose,
-    )
-
-
-# TODO: A lot of this code can be reused from hashstringdb.py
 def get_embeddings_with_caching(
+    strs: List[str],
     hashids: List[bytes],
     embedding_model: str,
     db_directory: Path = Path("."),
@@ -88,30 +76,67 @@ def get_embeddings_with_caching(
     session = Session()
 
     idxs_of_missing_hashids = []
-    # First, find all indexes of hashids that are NOT already in the database
+    # First, find all indexes of hashids that are NOT already in the embedding database
     for i in tqdm(
         range(0, len(hashids), batch_size),
         disable=not verbose,
-        desc="Finding missing hashids in embedding db",
+        desc="Finding missing hashids with in embeddings db",
     ):
-        batch_missing_hashids = hashids[i : i + batch_size]
-        batch_massing_strs = strs[i : i + batch_size]
+        batch_hashids = hashids[i : i + batch_size]
         existing_hashids = (
-            session.query(HashString.hashid)
-            .filter(HashString.hashid.in_(batch_missing_hashids))
+            session.query(Embedding.hashid)
+            .filter(Embedding.hashid.in_(batch_hashids))
             .all()
         )
         existing_hashids = {x[0] for x in existing_hashids}
         idxs_of_missing_hashids.extend(
             i + j
-            for j, hashid in enumerate(batch_missing_hashids)
+            for j, hashid in enumerate(batch_hashids)
             if hashid not in existing_hashids
         )
+
+    """"
+    Now, compute and add all embeddings for the missing strings.
+
+    This solution assumes the process has enough memory to hold all
+    new `Embedding` instances in a batch in memory at once. If
+    this is not the case, further adaptations would be needed, such
+    as flush and clear the session after each commit with
+    `session.flush()` and `session.expunge_all()`
+    """
+    for i in tqdm(
+        range(0, len(idxs_of_missing_hashids), batch_size),
+        disable=not verbose,
+        desc="Computing new embeddings",
+    ):
+        batch_hashids = idxs_of_missing_hashids[i : i + batch_size]
+        batch_missing_strs = [strs[i] for i in batch_hashids]
+        batch_embeddings = embedding_model.encode(batch_missing_strs)
+        new_hashstrings = [
+            Embedding(hashid=hashid, embeding=embedding)
+            for hashid, embedding in zip(batch_hashids, batch_embeddings.tobytes())
+            # for hashid, embedding in zip(batch_hashids, batch_embeddings.astype("float32").tobytes())
+        ]
+        session.bulk_save_objects(new_hashstrings)
+        # This is slower than one commit outside the loop, but is good
+        # if we are concerned about memory overflow for many new hashstrings
+        session.commit()
+
+    # Now, get all embeddings
+    # Might be faster not to do DB lookups several times
+    embeddings = (
+        session.query(Embedding.numpy_vector)
+        .filter(Embedding.hashid.in_(hashids))
+        .all()
+    )
+    # Put the embeddings in the same order as the hashids
+    embeddings = {x[0]: x[1] for x in embeddings}
+    embeddings = [np.frombuffer(embeddings[hashid]) for hashid in hashids]
+    embeddings = np.vstack(embeddings)
+    assert len(embeddings) == len(hashids)
     if verbose:
-        print(
-            f"Found {len(idxs_of_missing_hashids)} hashids not in the database, {len(hashids) - len(idxs_of_missing_hashids)} were cached.",
-            file=sys.stderr,
-        )
+        print(f"Embeddings shape: {embeddings.shape}")
+    return embeddings
 
 
 ##### The rest of this is mainly copy-pasta from hashstringdb.py
@@ -151,22 +176,3 @@ def create_db_if_not_exists(
     if not db_filename.exists():
         engine = create_engine(f"sqlite:///{db_filename}")
         Base.metadata.create_all(bind=engine)
-
-
-def compute_hashid(text: str) -> bytes:
-    """
-    Compute the hashid of a string.
-
-    We use SHA512.
-
-    Parameters
-    ----------
-    text : str
-        String to hash.
-
-    Returns
-    -------
-    bytes
-        Hashid of the string.
-    """
-    return hashlib.sha512(text.encode("utf-8")).digest()

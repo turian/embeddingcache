@@ -105,7 +105,8 @@ classifiers = [  # Optional
 dependencies = [ # Optional
   "SQLAlchemy",
   "tqdm",
-  "python-slugify"
+  "python-slugify",
+  "sentence_transformers",
 ]
 
 # List additional groups of dependencies here (e.g. development

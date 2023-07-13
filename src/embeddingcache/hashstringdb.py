@@ -104,17 +104,16 @@ def cache_hashid_to_strs(
         disable=not verbose,
         desc="Finding missing hashids with in hashstring",
     ):
-        batch_missing_hashids = hashids[i : i + batch_size]
-        batch_massing_strs = strs[i : i + batch_size]
+        batch_hashids = hashids[i : i + batch_size]
         existing_hashids = (
             session.query(HashString.hashid)
-            .filter(HashString.hashid.in_(batch_missing_hashids))
+            .filter(HashString.hashid.in_(batch_hashids))
             .all()
         )
         existing_hashids = {x[0] for x in existing_hashids}
         idxs_of_missing_hashids.extend(
             i + j
-            for j, hashid in enumerate(batch_missing_hashids)
+            for j, hashid in enumerate(batch_hashids)
             if hashid not in existing_hashids
         )
     if verbose:
@@ -137,11 +136,11 @@ def cache_hashid_to_strs(
         disable=not verbose,
         desc="Caching hashids to hashstring database",
     ):
-        batch_missing_hashids = idxs_of_missing_hashids[i : i + batch_size]
-        batch_missing_strs = [strs[i] for i in batch_missing_hashids]
+        batch_hashids = idxs_of_missing_hashids[i : i + batch_size]
+        batch_missing_strs = [strs[i] for i in batch_hashids]
         new_hashstrings = [
             HashString(hashid=hashid, text=str)
-            for hashid, str in zip(batch_missing_hashids, batch_missing_strs)
+            for hashid, str in zip(batch_hashids, batch_missing_strs)
         ]
         session.bulk_save_objects(new_hashstrings)
         # This is slower than one commit outside the loop, but is good
@@ -169,7 +168,7 @@ def get_db_filename(db_directory: Path, db_basefilename: str = "hashstring") -> 
         Full path to the database file.
     """
     # TODO: Make sure there are no collisions of slugified names
-    db_filename = f"{slugify(db_basefilename)}.sqlite"
+    db_filename = slugify(db_basefilename) + ".sqlite"
     db_directory.mkdir(parents=True, exist_ok=True)
     return db_directory / db_filename
 
