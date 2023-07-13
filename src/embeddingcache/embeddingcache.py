@@ -2,12 +2,8 @@
 """
 
 from pathlib import Path
-from typing import List
 
-import embeddingdb
-import hashstringdb
-import numpy as np
-from tqdm.auto import tqdm
+from embeddingdb import get_embeddings
 
 
 def get_embeddings(
@@ -16,4 +12,9 @@ def get_embeddings(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> np.ndarray:
-    hashids = hashstringdb.get_hashids(strs, db_directory=db_directory, verbose=verbose)
+    return get_embeddings(
+        strs=strs,
+        embedding_model=embedding_model,
+        db_directory=db_directory,
+        verbose=verbose,
+    )

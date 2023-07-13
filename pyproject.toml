@@ -107,6 +107,7 @@ dependencies = [ # Optional
   "tqdm",
   "python-slugify",
   "sentence_transformers",
+  "numpy",
 ]
 
 # List additional groups of dependencies here (e.g. development

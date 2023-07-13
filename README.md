@@ -35,6 +35,8 @@ we serialize to the table as bytes.
 
 ```
 pre-commit install
+pip install -e .
+pytest
 ```
 
 ## TODO
@@ -74,3 +76,4 @@ from scratch every time.
 * Suggest to use versioned OpenAI model
 * Add device to sentence transformers
 * Allow fast_sentence_transformers
+* Test that things work if there are duplicate strings
