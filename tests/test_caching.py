@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from embeddingcache import get_embeddings
+from embeddingcache.embeddingcache import get_embeddings
 
 
 class TestCaching(unittest.TestCase):

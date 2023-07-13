@@ -2,8 +2,11 @@
 """
 
 from pathlib import Path
+from typing import List
 
-from embeddingdb import get_embeddings
+import numpy as np
+
+import embeddingcache.embeddingdb as embeddingdb
 
 
 def get_embeddings(
@@ -12,7 +15,7 @@ def get_embeddings(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> np.ndarray:
-    return get_embeddings(
+    return embeddingdb.get_embeddings(
         strs=strs,
         embedding_model=embedding_model,
         db_directory=db_directory,

@@ -48,8 +48,8 @@ def get_hashids(
     verbose: bool = False,
 ) -> List[bytes]:
     hashids = [
-        compute_hashid(str)
-        for _ in tqdm(strs, disable=not verbose, desc="Computing hashids")
+        compute_hashid(text)
+        for text in tqdm(strs, disable=not verbose, desc="Computing hashids")
     ]
     assert len(hashids) == len(strs)
     cache_hashid_to_strs(
@@ -92,8 +92,10 @@ def cache_hashid_to_strs(
     None
     """
     assert len(hashids) == len(strs)
-    db_filename = get_db_filename(db_directory=db_directory)
-    engine = create_engine(f"sqlite:///{db_filename}")
+    db_filepath = get_db_filename(
+        db_directory=db_directory, db_basefilename="hashstring"
+    )
+    engine = create_engine(f"sqlite:///{db_filepath}")
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -136,19 +138,25 @@ def cache_hashid_to_strs(
         disable=not verbose,
         desc="Caching hashids to hashstring database",
     ):
-        batch_hashids = idxs_of_missing_hashids[i : i + batch_size]
-        batch_missing_strs = [strs[i] for i in batch_hashids]
+        batch_hashids = [
+            hashids[j] for j in idxs_of_missing_hashids[i : i + batch_size]
+        ]
+        batch_missing_strs = [
+            strs[j] for j in idxs_of_missing_hashids[i : i + batch_size]
+        ]
         new_hashstrings = [
             HashString(hashid=hashid, text=str)
             for hashid, str in zip(batch_hashids, batch_missing_strs)
         ]
+        for hashid, str in zip(batch_hashids, batch_missing_strs):
+            print(hashid, str)
         session.bulk_save_objects(new_hashstrings)
         # This is slower than one commit outside the loop, but is good
         # if we are concerned about memory overflow for many new hashstrings
         session.commit()
 
 
-def get_db_filename(db_directory: Path, db_basefilename: str = "hashstring") -> Path:
+def get_db_filename(db_directory: Path, db_basefilename: str) -> Path:
     """
     Get the full path to the database file.
 
@@ -170,18 +178,22 @@ def get_db_filename(db_directory: Path, db_basefilename: str = "hashstring") -> 
     # TODO: Make sure there are no collisions of slugified names
     db_filename = f"{slugify(db_basefilename)}.sqlite"
     db_directory.mkdir(parents=True, exist_ok=True)
-    return db_directory / db_filename
+    db_filepath = db_directory / db_filename
+    create_db_if_not_exists(db_filepath=db_filepath)
+    return db_filepath
 
 
-def create_db_if_not_exists(
-    db_directory: Path, db_filename: str = "hashstring.sqlite"
-) -> None:
+def create_db_if_not_exists(db_filepath: Path) -> None:
     """ """
-    db_filename = get_db_filename(db_directory=db_directory, db_filename=db_filename)
     # Create DB + table if it doesn't exist
-    if not db_filename.exists():
-        engine = create_engine(f"sqlite:///{db_filename}")
+    if not db_filepath.exists():
+        engine = create_engine(f"sqlite:///{db_filepath}")
         Base.metadata.create_all(bind=engine)
+        # Is this stuff necessary?
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        session.commit()
+        session.close()
 
 
 def compute_hashid(text: str) -> bytes:

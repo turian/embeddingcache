@@ -6,12 +6,15 @@ WRITEME
 from pathlib import Path
 from typing import List
 
-import hashstringdb
 import numpy as np
+from slugify import slugify
 from sqlalchemy import Column, LargeBinary, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from tqdm.auto import tqdm
+
+import embeddingcache.computeembeddings as computeembeddings
+import embeddingcache.hashstringdb as hashstringdb
 
 Base = declarative_base()
 
@@ -68,10 +71,10 @@ def get_embeddings_with_caching(
     verbose: bool = False,
     batch_size: int = 1024,
 ) -> np.ndarray:
-    db_filename = get_db_filename(
-        db_directory=db_directory, db_basename=f"embedding_{embedding_model}"
+    db_filepath = get_db_filename(
+        db_directory=db_directory, db_basefilename=f"embedding_{embedding_model}"
     )
-    engine = create_engine(f"sqlite:///{db_filename}")
+    engine = create_engine(f"sqlite:///{db_filepath}")
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -109,12 +112,18 @@ def get_embeddings_with_caching(
         disable=not verbose,
         desc="Computing new embeddings",
     ):
-        batch_hashids = idxs_of_missing_hashids[i : i + batch_size]
-        batch_missing_strs = [strs[i] for i in batch_hashids]
-        batch_embeddings = embedding_model.encode(batch_missing_strs)
+        batch_hashids = [
+            hashids[j] for j in idxs_of_missing_hashids[i : i + batch_size]
+        ]
+        batch_missing_strs = [
+            strs[j] for j in idxs_of_missing_hashids[i : i + batch_size]
+        ]
+        batch_embeddings = computeembeddings.embed(
+            strs=batch_missing_strs, embedding_model=embedding_model, verbose=verbose
+        )
         new_hashstrings = [
-            Embedding(hashid=hashid, embeding=embedding)
-            for hashid, embedding in zip(batch_hashids, batch_embeddings.tobytes())
+            Embedding(hashid=hashid, embedding=embedding.tobytes())
+            for hashid, embedding in zip(batch_hashids, batch_embeddings)
             # for hashid, embedding in zip(batch_hashids, batch_embeddings.astype("float32").tobytes())
         ]
         session.bulk_save_objects(new_hashstrings)
@@ -124,15 +133,12 @@ def get_embeddings_with_caching(
 
     # Now, get all embeddings
     # Might be faster not to do DB lookups several times
-    embeddings = (
-        session.query(Embedding.numpy_vector)
-        .filter(Embedding.hashid.in_(hashids))
-        .all()
-    )
-    # Put the embeddings in the same order as the hashids
-    embeddings = {x[0]: x[1] for x in embeddings}
-    embeddings = [np.frombuffer(embeddings[hashid]) for hashid in hashids]
-    embeddings = np.vstack(embeddings)
+    # (since we precomputed this stuff)
+    # TODO: Can we do this, and all lookups, returning in
+    # the order of hashids?
+    embeddings = session.query(Embedding).filter(Embedding.hashid.in_(hashids)).all()
+    embeddings = {x.hashid: np.frombuffer(x.embedding) for x in embeddings}
+    embeddings = np.vstack([embeddings[hashid] for hashid in hashids])
     assert len(embeddings) == len(hashids)
     if verbose:
         print(f"Embeddings shape: {embeddings.shape}")
@@ -164,15 +170,19 @@ def get_db_filename(db_directory: Path, db_basefilename: str) -> Path:
     # TODO: Make sure there are no collisions of slugified names
     db_filename = f"{slugify(db_basefilename)}.sqlite"
     db_directory.mkdir(parents=True, exist_ok=True)
-    return db_directory / db_filename
+    db_filepath = db_directory / db_filename
+    create_db_if_not_exists(db_filepath=db_filepath)
+    return db_filepath
 
 
-def create_db_if_not_exists(
-    db_directory: Path, db_filename: str = "hashstring.sqlite"
-) -> None:
+def create_db_if_not_exists(db_filepath: Path) -> None:
     """ """
-    db_filename = get_db_filename(db_directory=db_directory, db_filename=db_filename)
     # Create DB + table if it doesn't exist
-    if not db_filename.exists():
-        engine = create_engine(f"sqlite:///{db_filename}")
+    if not db_filepath.exists():
+        engine = create_engine(f"sqlite:///{db_filepath}")
         Base.metadata.create_all(bind=engine)
+        # Is this stuff necessary?
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        session.commit()
+        session.close()

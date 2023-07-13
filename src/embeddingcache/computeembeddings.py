@@ -1,9 +1,10 @@
-from typing import List, Optional
+from typing import List
 
+import numpy as np
 from sentence_transformers import SentenceTransformer
 
 
-def compute_embeddings_batch(
+def embed(
     strs: List[str], embedding_model: str, verbose: bool, normalize: bool = True
 ) -> np.ndarray:
     """
