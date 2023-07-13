@@ -13,17 +13,16 @@ def compute_embeddings_batch(
 
     TODO: Add device
     """
-    if embedding_model != "text-embedding-ada-002":
-        # TODO: Would be faster to cache this
-        model = SentenceTransformer(embedding_model)
-        embeddings = model.encode(
-            strs,
-            convert_to_numpy=True,
-            show_progress_bar=verbose,
-            normalize_embeddings=normalize,
-        )
-    else:
+    if embedding_model == "text-embedding-ada-002":
         raise ValueError(f"Unknown model: {model}")
+    # TODO: Would be faster to cache this
+    model = SentenceTransformer(embedding_model)
+    embeddings = model.encode(
+        strs,
+        convert_to_numpy=True,
+        show_progress_bar=verbose,
+        normalize_embeddings=normalize,
+    )
     """
     else:
         assert model == "text-embedding-ada-002"
