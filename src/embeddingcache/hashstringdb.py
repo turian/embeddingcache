@@ -6,13 +6,13 @@ TODO: Some of this code is reused with embeddingdb.py, consider refactoring.
 """
 
 import hashlib
+import sys
 from pathlib import Path
 from typing import List
 
 from slugify import slugify
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from tqdm.auto import tqdm
 
 Base = declarative_base()

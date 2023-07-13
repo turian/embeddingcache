@@ -77,3 +77,4 @@ from scratch every time.
 * Add device to sentence transformers
 * Allow fast_sentence_transformers
 * Test that things work if there are duplicate strings
+* Remove DBs after test

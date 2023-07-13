@@ -3,6 +3,7 @@
 # setup.py that excludes installing the "tests" package
 
 import unittest
+from pathlib import Path
 
 import numpy as np
 
@@ -22,7 +23,7 @@ class TestCaching(unittest.TestCase):
         )
         # TODO: Way to test that caching actually worked?
         e2 = get_embeddings(
-            strs=strs,
+            strs=strs2,
             embedding_model="all-MiniLM-L6-v2",
             db_directory=Path("."),
             verbose=True,
