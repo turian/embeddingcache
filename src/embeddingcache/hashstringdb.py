@@ -168,7 +168,7 @@ def get_db_filename(db_directory: Path, db_basefilename: str = "hashstring") -> 
         Full path to the database file.
     """
     # TODO: Make sure there are no collisions of slugified names
-    db_filename = slugify(db_basefilename) + ".sqlite"
+    db_filename = f"{slugify(db_basefilename)}.sqlite"
     db_directory.mkdir(parents=True, exist_ok=True)
     return db_directory / db_filename
 
