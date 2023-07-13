@@ -45,9 +45,10 @@ def get_hashids(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> List[bytes]:
-    hashids = []
-    for i in tqdm(strs, disable=not verbose, desc="Computing hashids"):
-        hashids.append(compute_hashid(str))
+    hashids = [
+        compute_hashid(str)
+        for _ in tqdm(strs, disable=not verbose, desc="Computing hashids")
+    ]
     assert len(hashids) == len(strs)
     cache_hashid_to_strs(
         hashids=hashids, strs=strs, db_directory=db_directory, verbose=verbose
@@ -104,11 +105,12 @@ def cache_hashid_to_strs(
             .filter(HashString.hashid.in_(batch_missing_hashids))
             .all()
         )
-        existing_hashids = set([x[0] for x in existing_hashids])
-        for j, hashid in enumerate(batch_missing_hashids):
-            if hashid not in existing_hashids:
-                idxs_of_missing_hashids.append(i + j)
-
+        existing_hashids = {x[0] for x in existing_hashids}
+        idxs_of_missing_hashids.extend(
+            i + j
+            for j, hashid in enumerate(batch_missing_hashids)
+            if hashid not in existing_hashids
+        )
     if verbose:
         print(
             f"Found {len(idxs_of_missing_hashids)} hashids not in the database, {len(hashids) - len(idxs_of_missing_hashids)} were cached.",
