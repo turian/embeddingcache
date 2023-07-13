@@ -1,5 +1,5 @@
 """
-WRITEME
+Database for storing hashids and their corresponding strings.
 
 TODO: Consider converting this to a class?
 TODO: Some of this code is reused with embeddingdb.py, consider refactoring.
@@ -47,6 +47,24 @@ def get_hashids(
     db_directory: Path = Path("."),
     verbose: bool = False,
 ) -> List[bytes]:
+    """
+    Get hashids for a list of strings.
+    Also, cache the hashids in the database.
+
+    Parameters
+    ----------
+    strs : List[str]
+        List of strings to get hashids for.
+    db_directory : Path
+        Directory where the database is stored.
+    verbose : bool
+        Whether to print progress.
+
+    Returns
+    -------
+    List[bytes]
+        List of hashids for the strings.
+    """
     hashids = [
         compute_hashid(text)
         for text in tqdm(strs, disable=not verbose, desc="Computing hashids")
@@ -184,8 +202,19 @@ def get_db_filename(db_directory: Path, db_basefilename: str) -> Path:
 
 
 def create_db_if_not_exists(db_filepath: Path) -> None:
-    """ """
-    # Create DB + table if it doesn't exist
+    """
+    Create the database and table if it doesn't exist.
+
+    Parameters
+    ----------
+    db_filepath : Path
+        Full path to the database file.
+
+    Returns
+    -------
+    None
+    """
+
     if not db_filepath.exists():
         engine = create_engine(f"sqlite:///{db_filepath}")
         Base.metadata.create_all(bind=engine)

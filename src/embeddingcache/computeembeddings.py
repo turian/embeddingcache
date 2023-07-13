@@ -1,3 +1,7 @@
+"""
+Compute embeddings for a batch of strings.
+"""
+
 from typing import List
 
 import numpy as np

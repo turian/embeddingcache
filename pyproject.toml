@@ -17,12 +17,12 @@ name = "embeddingcache"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "0.0.1"  # Required
+version = "0.1.0"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
 # https://packaging.python.org/specifications/core-metadata/#summary
-description = "A sample Python project"  # Optional
+description = "Retrieve text embeddings, but cache them locally if we have already computed them."
 
 # This is an optional longer description of your project that represents
 # the body of text which users will see when they visit PyPI.
@@ -57,15 +57,15 @@ keywords = ["sample", "setuptools", "development"]  # Optional
 # authored the project, and a valid email address corresponding to the name
 # listed.
 authors = [
-  {name = "A. Random Developer", email = "author@example.com" } # Optional
+  {name = "Joseph Turian", email = "lastname@gmail.com" } # Optional
 ]
 
 # This should be your name or the names of the organization who currently
 # maintains the project, and a valid email address corresponding to the name
 # listed.
-maintainers = [
-  {name = "A. Great Maintainer", email = "maintainer@example.com" } # Optional
-]
+#maintainers = [
+#  {name = "A. Great Maintainer", email = "maintainer@example.com" } # Optional
+#]
 
 # Classifiers help users find your project by categorizing it.
 #
@@ -79,10 +79,13 @@ classifiers = [  # Optional
 
   # Indicate who your project is intended for
   "Intended Audience :: Developers",
-  "Topic :: Software Development :: Build Tools",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Artificial Intelligence Researchers",
+  "Intended Audience :: Natural Language Processing Researchers",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
 
   # Pick your license as you wish
-  "License :: OSI Approved :: MIT License",
+  "License :: OSI Approved :: Apache Software License",
 
   # Specify the Python versions you support here. In particular, ensure
   # that you indicate you support Python 3. These classifiers are *not*
@@ -133,16 +136,16 @@ test = ["coverage"]
 # maintainers, and where to support the project financially. The key is
 # what's used to render the link text on PyPI.
 [project.urls]  # Optional
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Reports" = "https://github.com/pypa/sampleproject/issues"
-"Funding" = "https://donate.pypi.org"
-"Say Thanks!" = "http://saythanks.io/to/example"
-"Source" = "https://github.com/pypa/sampleproject/"
+"Homepage" = "https://github.com/turian/embeddingcache"
+"Bug Reports" = "https://github.com/turian/embeddingcache"
+#"Funding" = "https://donate.pypi.org"
+#"Say Thanks!" = "http://saythanks.io/to/example"
+"Source" = "https://github.com/turian/embeddingcache"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
-[project.scripts]  # Optional
-sample = "sample:main"
+#[project.scripts]  # Optional
+#sample = "sample:main"
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
