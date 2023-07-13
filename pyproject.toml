@@ -104,7 +104,8 @@ classifiers = [  # Optional
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 dependencies = [ # Optional
   "SQLAlchemy",
-  "tqdm"
+  "tqdm",
+  "python-slugify"
 ]
 
 # List additional groups of dependencies here (e.g. development

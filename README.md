@@ -69,3 +69,6 @@ from scratch every time.
 * Use logging not verbose output.
 * Rewrite using classes.
 * Fix dependabot.
+* Don't keep re-using DB session, store it in the class or global
+* DRY.
+* Suggest to use versioned OpenAI model

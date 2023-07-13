@@ -2,12 +2,14 @@
 WRITEME
 
 TODO: Consider converting this to a class?
+TODO: Some of this code is reused with embeddingdb.py, consider refactoring.
 """
 
 import hashlib
 from pathlib import Path
 from typing import List
 
+from slugify import slugify
 from sqlalchemy import Column, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -69,6 +71,8 @@ def cache_hashid_to_strs(
 
     Operate in batch writes of size `batch_size`.
 
+    TODO: Refactor into two functions?
+
     Parameters
     ----------
     hashids : List[bytes]
@@ -96,7 +100,9 @@ def cache_hashid_to_strs(
     idxs_of_missing_hashids = []
     # First, find all indexes of hashids that are NOT already in the database
     for i in tqdm(
-        range(0, len(hashids), batch_size), disable=not verbose, desc="Caching hashids"
+        range(0, len(hashids), batch_size),
+        disable=not verbose,
+        desc="Finding missing hashids with in hashstring",
     ):
         batch_missing_hashids = hashids[i : i + batch_size]
         batch_massing_strs = strs[i : i + batch_size]
@@ -129,7 +135,7 @@ def cache_hashid_to_strs(
     for i in tqdm(
         range(0, len(idxs_of_missing_hashids), batch_size),
         disable=not verbose,
-        desc="Caching hashids",
+        desc="Caching hashids to hashstring database",
     ):
         batch_missing_hashids = idxs_of_missing_hashids[i : i + batch_size]
         batch_missing_strs = [strs[i] for i in batch_missing_hashids]
@@ -143,7 +149,7 @@ def cache_hashid_to_strs(
         session.commit()
 
 
-def get_db_filename(db_directory: Path, db_filename: str = "hashstring.sqlite") -> Path:
+def get_db_filename(db_directory: Path, db_basefilename: str = "hashstring") -> Path:
     """
     Get the full path to the database file.
 
@@ -162,6 +168,8 @@ def get_db_filename(db_directory: Path, db_filename: str = "hashstring.sqlite") 
     Path
         Full path to the database file.
     """
+    # TODO: Make sure there are no collisions of slugified names
+    db_filename = slugify(db_basefilename) + ".sqlite"
     db_directory.mkdir(parents=True, exist_ok=True)
     return db_directory / db_filename
 
